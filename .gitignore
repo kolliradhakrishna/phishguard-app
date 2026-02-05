@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Model Data (Large Files)
+*.npy
+model/X.txt.npy
+
+# Database
+db.sqlite3
+
+# Static
+staticfiles/

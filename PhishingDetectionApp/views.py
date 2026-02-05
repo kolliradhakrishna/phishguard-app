@@ -23,45 +23,59 @@ import io
 import urllib, base64
 from .models import BlockedUrl
 
-global results_data
-results_data = {}
+# Initialize global variables to None
+X_train = X_test = y_train = y_test = None
+svm_cls = lgbm_cls = rf_cls = tfidf = None
 
-X = np.load("model/X.txt.npy")
-Y = np.load("model/Y.txt.npy")
-indices = np.arange(X.shape[0])
-np.random.shuffle(indices)
-X = X[indices]
-Y = Y[indices]
+try:
+    # Load TFIDF and Random Forest (Critical for Prediction)
+    if os.path.exists('model/tfidf.txt'):
+        with open('model/tfidf.txt', 'rb') as file:
+            tfidf = pickle.load(file)
+            
+    if os.path.exists('model/rf.txt'):
+        with open('model/rf.txt', 'rb') as file:
+            rf_cls = pickle.load(file)
 
+    # Load Dataset (Optional - for Model Evaluation pages only)
+    if os.path.exists("model/X.txt.npy") and os.path.exists("model/Y.txt.npy"):
+        X = np.load("model/X.txt.npy")
+        Y = np.load("model/Y.txt.npy")
+        indices = np.arange(X.shape[0])
+        np.random.shuffle(indices)
+        X = X[indices]
+        Y = Y[indices]
 
-with open('model/tfidf.txt', 'rb') as file:
-    tfidf = pickle.load(file)
-file.close()
-X = tfidf.fit_transform(X).toarray()
+        # Apply TFIDF transform to dataset if loaded
+        if tfidf:
+            X = tfidf.fit_transform(X).toarray()
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
 
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+        # Load or Train SVM
+        if os.path.exists('model/svm.txt'):
+            with open('model/svm.txt', 'rb') as file:
+                svm_cls = pickle.load(file)
+        else:
+            svm_cls = svm.SVC()
+            svm_cls.fit(X_train, y_train)
+            with open('model/svm.txt', 'wb') as file:
+                pickle.dump(svm_cls, file)
 
-if os.path.exists('model/svm.txt'):
-    with open('model/svm.txt', 'rb') as file:
-        svm_cls = pickle.load(file)
-    file.close()
-else:
-    svm_cls = svm.SVC()
-    svm_cls.fit(X_train, y_train)
-    with open('model/svm.txt', 'wb') as file:
-        pickle.dump(svm_cls, file)
-    file.close()
+        # Load or Train LightGBM
+        if os.path.exists('model/lgbm.txt'):
+            with open('model/lgbm.txt', 'rb') as file:
+                lgbm_cls = pickle.load(file)
+        else:
+            lgbm_cls = LGBMClassifier()
+            lgbm_cls.fit(X_train, y_train)
+            with open('model/lgbm.txt', 'wb') as file:
+                pickle.dump(lgbm_cls, file)
+    else:
+        print("Warning: Dataset (X.txt.npy) not found. Evaluation pages will be disabled.")
 
-if os.path.exists('model/lgbm.txt'):
-    with open('model/lgbm.txt', 'rb') as file:
-        lgbm_cls = pickle.load(file)
-    file.close()
-else:
-    lgbm_cls = LGBMClassifier()
-    lgbm_cls.fit(X_train, y_train)
-    with open('model/lgbm.txt', 'wb') as file:
-        pickle.dump(lgbm_cls, file)
-    file.close()
+except Exception as e:
+    print(f"Error loading models or data: {e}")
 
 with open('model/rf.txt', 'rb') as file:
     rf_cls = pickle.load(file)
@@ -73,6 +87,11 @@ def RunSVM(request):
     if request.method == 'GET':
         global X_train, X_test, y_train, y_test
         
+        # Check if model/data exists
+        if svm_cls is None or X_test is None:
+             context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
+             return render(request, 'ViewOutput.html', context)
+
         predict = svm_cls.predict(X_test)
         acc = accuracy_score(y_test,predict)*100
         p = precision_score(y_test,predict,average='macro') * 100
@@ -123,6 +142,11 @@ def RunLGBM(request):
     if request.method == 'GET':
         global X_train, X_test, y_train, y_test
         
+        # Check if model/data exists
+        if lgbm_cls is None or X_test is None:
+             context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
+             return render(request, 'ViewOutput.html', context)
+
         predict = lgbm_cls.predict(X_test)
         acc = accuracy_score(y_test,predict)*100
         p = precision_score(y_test,predict,average='macro') * 100
@@ -182,6 +206,10 @@ def getData(arr):
 def PredictAction(request):
     if request.method == 'POST':
         global rf_cls, tfidf
+        
+        if rf_cls is None or tfidf is None:
+             return render(request, 'Predict.html', {'msg': 'Prediction model not available.'})
+
         url_input = request.POST.get('t1', '')
         test = []
         if not url_input:
