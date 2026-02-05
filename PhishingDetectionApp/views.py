@@ -3,6 +3,8 @@ from django.template import RequestContext
 from django.contrib import messages
 from django.http import HttpResponse
 import os
+# Set Matplotlib cache to writable temp directory
+os.environ['MPLCONFIGDIR'] = '/tmp'
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
