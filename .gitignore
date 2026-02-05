@@ -1,16 +1,17 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
+# Environments
 venv/
+env/
 .env
 
-# Model Data (Large Files)
-*.npy
-model/X.txt.npy
+# Python Cache
+__pycache__/
+*.py[cod]
 
-# Database
+# Large Data & Models
+# model/X.txt.npy (Handled by Git LFS)
+model/Y.txt.npy
 db.sqlite3
 
-# Static
-staticfiles/
+# OS generated files
+.DS_Store
+Thumbs.db

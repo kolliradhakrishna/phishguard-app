@@ -3,7 +3,6 @@ from django.template import RequestContext
 from django.contrib import messages
 from django.http import HttpResponse
 import os
-import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
