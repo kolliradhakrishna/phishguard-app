@@ -62,10 +62,15 @@ def get_evaluation_data():
             np.random.shuffle(indices)
             X = X[indices]
             Y = Y[indices]
+            
+            # Subsample for performance memory optimization (Render Free Tier)
+            X = X[:5000]
+            Y = Y[:5000]
 
             # Apply TFIDF to sparse matrix (no .toarray() to save RAM)
             if tfidf:
-                X = tfidf.fit_transform(X)
+                # Use transform instead of fit_transform to preserve model vocabulary
+                X = tfidf.transform(X)
             
             X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
 
