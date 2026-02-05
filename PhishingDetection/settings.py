@@ -135,4 +135,4 @@ STATICFILES_DIRS = [
 ]
 
 # Simplify static file handling
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
