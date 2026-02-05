@@ -47,7 +47,7 @@ try:
 
         # Apply TFIDF transform to dataset if loaded
         if tfidf:
-            X = tfidf.fit_transform(X).toarray()
+            X = tfidf.fit_transform(X)
         
         X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
 
@@ -218,7 +218,7 @@ def PredictAction(request):
             data = getData(arr)
 
             test.append(data)
-            test = tfidf.transform(test).toarray()
+            test = tfidf.transform(test)
 
 
             predict = rf_cls.predict(test)
