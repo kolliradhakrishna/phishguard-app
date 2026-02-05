@@ -56,23 +56,31 @@ def get_evaluation_data():
     try:
         # Load Dataset
         if os.path.exists("model/X.txt.npy") and os.path.exists("model/Y.txt.npy"):
-            X = np.load("model/X.txt.npy")
-            Y = np.load("model/Y.txt.npy")
-            indices = np.arange(X.shape[0])
+            # Use mmap_mode to avoid loading entire file into RAM
+            X_mmap = np.load("model/X.txt.npy", mmap_mode='r')
+            Y_mmap = np.load("model/Y.txt.npy", mmap_mode='r')
+            
+            total_samples = X_mmap.shape[0]
+            indices = np.arange(total_samples)
             np.random.shuffle(indices)
-            X = X[indices]
-            Y = Y[indices]
             
             # Subsample for performance memory optimization (Render Free Tier)
-            X = X[:5000]
-            Y = Y[:5000]
-
+            # Take only the first 2000 indices (Reduced to ensure .toarray fits in RAM)
+            subset_indices = indices[:2000]
+            
+            # Load only the subset into memory
+            X_subset = X_mmap[subset_indices]
+            Y_subset = Y_mmap[subset_indices]
+            
             # Apply TFIDF to sparse matrix (no .toarray() to save RAM)
             if tfidf:
                 # Use transform instead of fit_transform to preserve model vocabulary
-                X = tfidf.transform(X)
+                X_subset = tfidf.transform(X_subset)
+                # SVM model was trained on dense data, so we must convert.
+                # With 2000 samples, this should fit in memory.
+                X_subset = X_subset.toarray()
             
-            X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+            X_train, X_test, y_train, y_test = train_test_split(X_subset, Y_subset, test_size=0.2)
 
             # Load or Train SVM
             if os.path.exists('model/svm.txt'):
@@ -99,120 +107,128 @@ def get_evaluation_data():
 from matplotlib.figure import Figure
 
 def RunSVM(request):
-    if request.method == 'GET':
-        global X_train, X_test, y_train, y_test
-        
-        # Prepare data on demand
-        get_evaluation_data()
-        
-        # Check if model/data exists
-        if svm_cls is None or X_test is None:
-             context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
-             return render(request, 'ViewOutput.html', context)
+    try:
+        if request.method == 'GET':
+            global X_train, X_test, y_train, y_test
+            
+            # Prepare data on demand
+            get_evaluation_data()
+            
+            # Check if model/data exists
+            if svm_cls is None or X_test is None:
+                context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
+                return render(request, 'ViewOutput.html', context)
 
-        predict = svm_cls.predict(X_test)
-        acc = accuracy_score(y_test,predict)*100
-        p = precision_score(y_test,predict,average='macro') * 100
-        r = recall_score(y_test,predict,average='macro') * 100
-        f = f1_score(y_test,predict,average='macro') * 100
-        
-        # Local variable instead of global
-        current_results = {}
-        current_results['SVM'] = {
-            'accuracy': acc,
-            'precision': p,
-            'recall': r,
-            'fscore': f
-        }
-        
-        output = ""
-        for model_name, metrics in current_results.items():
-            output += f'<tr><td><font size="" color="black">{model_name}</td>'
-            output += f'<td><font size="" color="black">{metrics["accuracy"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["precision"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["recall"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["fscore"]}</td>'
+            predict = svm_cls.predict(X_test)
+            acc = accuracy_score(y_test,predict)*100
+            p = precision_score(y_test,predict,average='macro') * 100
+            r = recall_score(y_test,predict,average='macro') * 100
+            f = f1_score(y_test,predict,average='macro') * 100
+            
+            # Local variable instead of global
+            current_results = {}
+            current_results['SVM'] = {
+                'accuracy': acc,
+                'precision': p,
+                'recall': r,
+                'fscore': f
+            }
+            
+            output = ""
+            for model_name, metrics in current_results.items():
+                output += f'<tr><td><font size="" color="black">{model_name}</td>'
+                output += f'<td><font size="" color="black">{metrics["accuracy"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["precision"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["recall"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["fscore"]}</td>'
 
-        LABELS = ['Normal URL','Phishing URL']
-        conf_matrix = confusion_matrix(y_test, predict)
-        
-        # Thread-safe plotting using OO API
-        fig = Figure(figsize=(6, 6))
-        ax = fig.subplots()
-        sns.heatmap(conf_matrix, xticklabels = LABELS, yticklabels = LABELS, annot = True, cmap="viridis" ,fmt ="g", ax=ax);
-        ax.set_ylim([0,2])
-        ax.set_title("SVM Confusion matrix") 
-        ax.set_ylabel('True class') 
-        ax.set_xlabel('Predicted class') 
-        
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        string = base64.b64encode(buf.read())
-        uri = urllib.parse.quote(string)
-        chart_data = uri
-        
-        context= {'data':output, 'chart_data': chart_data, 'chart_title': 'SVM Confusion Matrix'}
-        return render(request, 'ViewOutput.html', context)
-    return render(request, 'ViewOutput.html', {})     
+            LABELS = ['Normal URL','Phishing URL']
+            conf_matrix = confusion_matrix(y_test, predict)
+            
+            # Thread-safe plotting using OO API
+            fig = Figure(figsize=(6, 6))
+            ax = fig.subplots()
+            sns.heatmap(conf_matrix, xticklabels = LABELS, yticklabels = LABELS, annot = True, cmap="viridis" ,fmt ="g", ax=ax);
+            ax.set_ylim([0,2])
+            ax.set_title("SVM Confusion matrix") 
+            ax.set_ylabel('True class') 
+            ax.set_xlabel('Predicted class') 
+            
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png')
+            buf.seek(0)
+            string = base64.b64encode(buf.read())
+            uri = urllib.parse.quote(string)
+            chart_data = uri
+            
+            context= {'data':output, 'chart_data': chart_data, 'chart_title': 'SVM Confusion Matrix'}
+            return render(request, 'ViewOutput.html', context)
+        return render(request, 'ViewOutput.html', {})
+    except Exception as e:
+        print(f"Error in RunSVM: {e}")
+        return render(request, 'ViewOutput.html', {'data': f'Error running SVM: {str(e)}', 'chart_title': 'Error'})    
 
 def RunLGBM(request):
-    if request.method == 'GET':
-        global X_train, X_test, y_train, y_test
-        
-        # Prepare data on demand
-        get_evaluation_data()
+    try:
+        if request.method == 'GET':
+            global X_train, X_test, y_train, y_test
+            
+            # Prepare data on demand
+            get_evaluation_data()
 
-        # Check if model/data exists
-        if lgbm_cls is None or X_test is None:
-             context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
-             return render(request, 'ViewOutput.html', context)
+            # Check if model/data exists
+            if lgbm_cls is None or X_test is None:
+                context = {'data': '<tr><td colspan="5">Dataset or Model not available on server.</td></tr>', 'chart_title': 'Data Unavailable'}
+                return render(request, 'ViewOutput.html', context)
 
-        predict = lgbm_cls.predict(X_test)
-        acc = accuracy_score(y_test,predict)*100
-        p = precision_score(y_test,predict,average='macro') * 100
-        r = recall_score(y_test,predict,average='macro') * 100
-        f = f1_score(y_test,predict,average='macro') * 100
-        
-        # Local variable
-        current_results = {}
-        current_results['LightGBM'] = {
-            'accuracy': acc,
-            'precision': p,
-            'recall': r,
-            'fscore': f
-        }
-        
-        output = ""
-        for model_name, metrics in current_results.items():
-            output += f'<tr><td><font size="" color="black">{model_name}</td>'
-            output += f'<td><font size="" color="black">{metrics["accuracy"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["precision"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["recall"]}</td>'
-            output += f'<td><font size="" color="black">{metrics["fscore"]}</td>'
+            predict = lgbm_cls.predict(X_test)
+            acc = accuracy_score(y_test,predict)*100
+            p = precision_score(y_test,predict,average='macro') * 100
+            r = recall_score(y_test,predict,average='macro') * 100
+            f = f1_score(y_test,predict,average='macro') * 100
+            
+            # Local variable
+            current_results = {}
+            current_results['LightGBM'] = {
+                'accuracy': acc,
+                'precision': p,
+                'recall': r,
+                'fscore': f
+            }
+            
+            output = ""
+            for model_name, metrics in current_results.items():
+                output += f'<tr><td><font size="" color="black">{model_name}</td>'
+                output += f'<td><font size="" color="black">{metrics["accuracy"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["precision"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["recall"]}</td>'
+                output += f'<td><font size="" color="black">{metrics["fscore"]}</td>'
 
-        LABELS = ['Normal URL','Phishing URL']
-        conf_matrix = confusion_matrix(y_test, predict) 
-        
-        # Thread-safe plotting using OO API
-        fig = Figure(figsize=(6, 6))
-        ax = fig.subplots()
-        sns.heatmap(conf_matrix, xticklabels = LABELS, yticklabels = LABELS, annot = True, cmap="viridis" ,fmt ="g", ax=ax);
-        ax.set_ylim([0,2])
-        ax.set_title("LightGBM Confusion matrix") 
-        ax.set_ylabel('True class') 
-        ax.set_xlabel('Predicted class') 
-        
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        string = base64.b64encode(buf.read())
-        uri = urllib.parse.quote(string)
-        chart_data = uri
-        
-        context= {'data':output, 'chart_data': chart_data, 'chart_title': 'LightGBM Confusion Matrix'}
-        return render(request, 'ViewOutput.html', context)
-    return render(request, 'ViewOutput.html', {})    
+            LABELS = ['Normal URL','Phishing URL']
+            conf_matrix = confusion_matrix(y_test, predict) 
+            
+            # Thread-safe plotting using OO API
+            fig = Figure(figsize=(6, 6))
+            ax = fig.subplots()
+            sns.heatmap(conf_matrix, xticklabels = LABELS, yticklabels = LABELS, annot = True, cmap="viridis" ,fmt ="g", ax=ax);
+            ax.set_ylim([0,2])
+            ax.set_title("LightGBM Confusion matrix") 
+            ax.set_ylabel('True class') 
+            ax.set_xlabel('Predicted class') 
+            
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png')
+            buf.seek(0)
+            string = base64.b64encode(buf.read())
+            uri = urllib.parse.quote(string)
+            chart_data = uri
+            
+            context= {'data':output, 'chart_data': chart_data, 'chart_title': 'LightGBM Confusion Matrix'}
+            return render(request, 'ViewOutput.html', context)
+        return render(request, 'ViewOutput.html', {})
+    except Exception as e:
+        print(f"Error in RunLGBM: {e}")
+        return render(request, 'ViewOutput.html', {'data': f'Error running LightGBM: {str(e)}', 'chart_title': 'Error'})    
 
 
 
