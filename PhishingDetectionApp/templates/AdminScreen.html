@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PhishGuard | Admin Dashboard</title>
+	<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+	<div class="dashboard-layout">
+		<!-- Sidebar -->
+		<aside class="sidebar">
+			<div class="sidebar-logo">
+				<span>🛡️</span> Admin
+			</div>
+
+			<nav class="sidebar-menu">
+				<a href="{% url 'AdminLoginAction' %}" class="active">
+					🏠 Dashboard
+				</a>
+				<a href="{% url 'RunSVM' %}">
+					🤖 Run SVM
+				</a>
+				<a href="{% url 'RunLGBM' %}">
+					⚡ Run LightGBM
+				</a>
+				<a href="{% url 'ViewBlockedUrls' %}">
+					🚫 Blocked URLs
+				</a>
+			</nav>
+
+			<div style="margin-top: auto; border-top: 1px solid var(--border); padding-top: 1rem;">
+				<a href="{% url 'index' %}" class="sidebar-menu-link"
+					style="color: var(--danger); display: flex; align-items: center; gap: 0.75rem; text-decoration: none; padding: 0.5rem;">
+					⬅ Logout
+				</a>
+			</div>
+		</aside>
+
+		<!-- Main Content -->
+		<main class="main-content">
+			<h2 style="margin-bottom: 2rem;">Admin Dashboard</h2>
+			<p style="margin-bottom: 2rem; color: var(--text-muted);">Welcome back! Here's an overview of the system.
+			</p>
+
+			<!-- Stats Grid (Placeholders as per plan) -->
+			<div class="stats-grid">
+				<div class="stat-card">
+					<div class="stat-label">Total Scans Today</div>
+					<div class="stat-value text-primary">1,247</div>
+					<div style="font-size: 0.875rem; color: var(--success);">↑ 12% vs yesterday</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-label">Phishing Detected</div>
+					<div class="stat-value" style="color: var(--danger);">342</div>
+					<div style="font-size: 0.875rem; color: var(--text-muted);">27% of total scans</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-label">Model Accuracy</div>
+					<div class="stat-value" style="color: var(--success);">98.5%</div>
+					<div style="font-size: 0.875rem; color: var(--text-muted);">Last validation</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-label">System Status</div>
+					<div class="stat-value" style="font-size: 1.5rem; color: var(--success);">Operational</div>
+					<div style="font-size: 0.875rem; color: var(--text-muted);">Database Connected</div>
+				</div>
+			</div>
+
+			<!-- Dynamic Content Area -->
+			<div class="card"
+				style="background: white; padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border);">
+				<h3 style="margin-bottom: 1.5rem;">System Output</h3>
+				{% if data %}
+				<div style="padding: 1rem; background: var(--bg-surface); border-radius: var(--radius);">
+					{{ data|safe }}
+				</div>
+				{% else %}
+				<p>Select an action from the sidebar to view results.</p>
+				{% endif %}
+			</div>
+
+		</main>
+	</div>
+
+</body>
+
+</html>

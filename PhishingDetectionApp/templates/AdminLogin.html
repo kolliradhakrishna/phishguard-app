@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PhishGuard | Admin Login</title>
+	<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body style="background-color: var(--bg-surface);">
+
+	<!-- Navbar (Optional for Login, but good for navigation back) -->
+	<nav class="navbar">
+		<div class="container nav-content">
+			<div class="logo">
+				<span class="logo-icon">🛡️</span> PhishGuard
+			</div>
+			<div class="nav-links">
+				<a href="{% url 'index' %}">Home</a>
+			</div>
+		</div>
+	</nav>
+
+	<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+		<div class="form-card" style="width: 100%; max-width: 400px; padding: 2.5rem;">
+			<div class="text-center" style="margin-bottom: 2rem;">
+				<h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Admin Login</h1>
+				<p>Sign in to manage the detection system</p>
+			</div>
+
+			<form method="post" action="{% url 'AdminLoginAction' %}">
+				{% csrf_token %}
+
+				{% if data %}
+				<div
+					style="background: #FEE2E2; color: #DC2626; padding: 0.75rem; border-radius: var(--radius); margin-bottom: 1.5rem; text-align: center; font-weight: 500;">
+					{{ data }}
+				</div>
+				{% endif %}
+
+				<div style="margin-bottom: 1.5rem;">
+					<label for="t1" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+					<input type="text" name="t1" id="t1" class="form-input" placeholder="Enter username" required>
+				</div>
+
+				<div style="margin-bottom: 1.5rem;">
+					<label for="t2" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
+					<input type="password" name="t2" id="t2" class="form-input" placeholder="Enter password" required>
+				</div>
+
+				<button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Login to Dashboard</button>
+			</form>
+
+			<div class="text-center" style="margin-top: 2rem;">
+				<a href="{% url 'index' %}" style="color: var(--text-muted); font-size: 0.875rem;">← Back to Home</a>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>

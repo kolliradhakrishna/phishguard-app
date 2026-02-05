@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | Check URL</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span> PhishGuard
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'index' %}">Home</a>
+                <a href="{% url 'Predict' %}" class="active text-primary">Check URL</a>
+                <a href="{% url 'AdminLogin' %}" class="btn btn-primary"
+                    style="padding: 0.5rem 1rem; border-radius: 6px;">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div
+        style="min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: 80px;">
+        <div class="container" style="max-width: 800px;">
+            <div class="text-center" style="margin-bottom: 3rem;">
+                <h1 style="margin-bottom: 1rem;">Analyze Suspicious URLs</h1>
+                <p style="font-size: 1.125rem;">Enter the URL below to check if it's safe or phishing using our advanced
+                    AI.</p>
+            </div>
+
+            <div class="form-card">
+                <form method="POST" action="{% url 'PredictAction' %}">
+                    {% csrf_token %}
+                    <label for="t1" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Website URL</label>
+                    <input type="text" name="t1" id="t1" class="form-input" placeholder="e.g. http://example.com/login"
+                        required>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Analyze URL Now</button>
+                    <!-- msg -->
+                </form>
+
+                {% if url %}
+                <div
+                    style="margin-top: 2rem; text-align: center; padding: 2rem; background: var(--bg-surface); border-radius: var(--radius);">
+                    <p style="margin-bottom: 1rem; font-weight: 500;">Result for: <span
+                            style="color: var(--primary);">{{ url }}</span></p>
+
+                    {% if "Genuine" in msg %}
+                    <h3
+                        style="color: var(--success); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        ✅ {{ msg }}
+                    </h3>
+                    {% else %}
+                    <h3
+                        style="color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        ⚠️ {{ msg }}
+                    </h3>
+                    <div style="margin-top: 1rem;">
+                        <a href="{% url 'blockurl' %}?url={{ url }}" class="btn"
+                            style="background: var(--danger); color: white; padding: 0.5rem 1rem; border-radius: var(--radius);">Block
+                            this URL</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if msg and not url %}
+                <!-- Display simple error message if any -->
+                <p style="text-align: center; margin-top: 1rem; color: var(--danger);">{{ msg }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | Blocked URLs</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span> PhishGuard
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'index' %}">Home</a>
+                <a href="{% url 'AdminLogin' %}" class="btn btn-primary"
+                    style="padding: 0.5rem 1rem; border-radius: 6px;">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="padding-top: 100px; padding-bottom: 4rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>🚫 Blocked URLs Database</h2>
+            <a href="{% url 'index' %}" class="btn btn-secondary">← Back to Home</a>
+        </div>
+
+        <p style="margin-bottom: 2rem; color: var(--text-muted);">List of all URLs that have been flagged as phishing
+            and blocked by the system.</p>
+
+        {% if alt %}
+        <div style="margin-bottom: 1rem;">
+            {{ alt|safe }}
+        </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70%;">Blocked URL</th>
+                        <th style="width: 30%;">Date Blocked</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in data %}
+                    <tr>
+                        <td style="color: var(--danger); font-weight: 500;">{{ i.url }}</td>
+                        <td style="color: var(--text-muted);">{{ i.blocked_date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center" style="padding: 3rem; color: var(--text-muted);">
+                            No blocked URLs found in the database.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+
+</html>

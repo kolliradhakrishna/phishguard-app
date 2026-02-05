@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | Model Output</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <span>🛡️</span> Admin
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="{% url 'AdminLoginAction' %}">
+                    🏠 Dashboard
+                </a>
+                <a href="{% url 'RunSVM' %}" class="active">
+                    🤖 Run SVM
+                </a>
+                <a href="{% url 'RunLGBM' %}">
+                    ⚡ Run LightGBM
+                </a>
+                <a href="{% url 'ViewBlockedUrls' %}">
+                    🚫 Blocked URLs
+                </a>
+            </nav>
+
+            <div style="margin-top: auto; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <a href="{% url 'index' %}" class="sidebar-menu-link"
+                    style="color: var(--danger); display: flex; align-items: center; gap: 0.75rem; text-decoration: none; padding: 0.5rem;">
+                    ⬅ Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2 style="margin-bottom: 2rem;">Model Performance Evaluation</h2>
+
+            <div class="card"
+                style="background: white; padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1.5rem;">Performance Metrics</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm Name</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1 Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ data|safe }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if chart_data %}
+            <div class="card"
+                style="background: white; padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center;">
+                <h3 style="margin-bottom: 1.5rem;">{{ chart_title }}</h3>
+                <img src="data:image/png;base64,{{ chart_data }}" alt="Confusion Matrix"
+                    style="max-width: 100%; border-radius: var(--radius); margin: 0 auto;">
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+
+</body>
+
+</html>

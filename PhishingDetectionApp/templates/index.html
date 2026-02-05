@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | Secure Browsing with AI</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span> PhishGuard
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'index' %}">Home</a>
+                <a href="{% url 'Predict' %}">Check URL</a>
+                <a href="{% url 'AdminLogin' %}" class="btn btn-primary"
+                    style="padding: 0.5rem 1rem; border-radius: 6px;">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="container hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span>🛡️</span> Machine Learning Powered
+                </div>
+                <h1>Detect Phishing Websites Instantly</h1>
+                <p style="font-size: 1.125rem; margin-bottom: 2rem;">
+                    Protect yourself from online threats with our advanced ML-based phishing detection system. Simply
+                    enter a URL and get instant analysis.
+                </p>
+                <div class="flex gap-4">
+                    <a href="{% url 'Predict' %}" class="btn btn-primary btn-lg">Check URL Now →</a>
+                    <a href="#how-it-works" class="btn btn-secondary btn-lg">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-circle"></div>
+                <!-- Shield Icon created with CSS Mask -->
+                <div class="shield-icon"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Key Features</h2>
+                <p>Our phishing detection system uses state-of-the-art machine learning algorithms to protect you from
+                    malicious websites.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>URL Analysis</h3>
+                    <p>Deep analysis of URL structure, domain age, SSL certificates, and more to identify suspicious
+                        patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>ML Classification</h3>
+                    <p>Trained on millions of URLs using advanced SVM and LightGBM models for high accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-time Protection</h3>
+                    <p>Instant results with sub-second response times for immediate protection while browsing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works (Steps) -->
+    <section id="how-it-works" class="steps-section">
+        <div class="container">
+            <div class="steps-grid">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <h3>Enter URL</h3>
+                    <p>Paste any suspicious URL into our secure input field.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <h3>ML Analysis</h3>
+                    <p>Our algorithm extracts features and runs classification models.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <h3>Get Results</h3>
+                    <p>Receive instant verdict with confidence score and details.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Protect Yourself?</h2>
+            <p>Start checking URLs for phishing threats now. It is free and takes less than a second.</p>
+            <a href="{% url 'Predict' %}" class="btn btn-cta btn-lg">Try URL Checker →</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <span class="footer-logo">PhishGuard</span>
+                    <p class="footer-desc">
+                        Advanced phishing detection powered by machine learning to keep you safe online.
+                    </p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'index' %}">Home</a></li>
+                        <li><a href="{% url 'Predict' %}">URL Checker</a></li>
+                        <li><a href="{% url 'AdminLogin' %}">Admin Panel</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Security Tips</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li><a href="mailto:support@phishguard.com">support@phishguard.com</a></li>
+                        <li><a href="tel:+919876543210">+91 98765 43210</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 PhishGuard. Final Year Project - Machine Learning Based Phishing Detection.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
